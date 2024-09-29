@@ -64,7 +64,7 @@ model3 <- lm(bc_average_stars ~ bc_review_count + fans + average_useful +
 check_normality(model3, bc_average_stars)
 ```
 
-```{r}
+```{r, fig.width=10, fig.height=10}
 par(mfrow = c(3, 3))
 plot(resid(model3) ~ fitted(model3), main = "All Transformed")
 plot(resid(model1) ~ fitted(model1), main = "Transformed Y")
