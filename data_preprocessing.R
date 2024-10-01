@@ -16,6 +16,7 @@ business <- read_csv(business_file)
 review1 <- read_csv(review_file1)
 review2 <- read_csv(review_file2)
 review <- rbind(review1, review2)
+# review <- read_csv(review_file)
 
 # View(user)
 # View(business)
@@ -25,16 +26,16 @@ new_user <- subset(user, select = c(fans, average_stars, elite,
                                     review_count, user_id))
 new_user <- mutate(new_user, elite = as.integer(str_length(elite) > 3))
 
-new_business <- subset(business, select = c(business_id, stars))
+new_business <- subset(business, select = c(business_id, review_count))
 
 new_review <- subset(review, select = c(business_id, user_id, stars, useful))
 new_review <- left_join(new_review, new_business, by = "business_id")
-new_review <- new_review %>% rename(stars = stars.x, business_stars = stars.y)
+# new_review <- new_review %>% rename(stars = stars.x, business_stars = stars.y)
 
 new <- new_review %>%
   group_by(user_id) %>%
   summarise(
-    average_business_star = mean(business_stars),
+    average_business_review_count = mean(review_count),
     average_useful = mean(useful)
   )
 

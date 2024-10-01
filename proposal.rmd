@@ -3,12 +3,13 @@ library(readr)
 library(tidyverse)
 library(dplyr)
 library(MASS)
+install.packages("car")
 library(car)
 ```
 
 ```{r}
 data <- read.csv("yelp_data.csv")
-data <- data[1:2000, ]
+# data <- data[1:2000, ]
 data <- data[complete.cases(data), ]
 ```
 
@@ -27,7 +28,7 @@ check_normality <- function(model, response) {
 
 ```{r, fig.width=15, fig.height=5}
 og_model <- lm(average_stars ~ review_count + fans + average_useful +
-                 elite + average_business_stars, data = data)
+                 elite + average_business_review_count, data = data)
 
 check_normality(og_model, data$average_stars)
 ```
@@ -39,7 +40,7 @@ boxcox(og_model)
 ```{r, fig.width=15, fig.height=5}
 bc_average_stars <- data$average_stars ** 5/3
 model1 <- lm(bc_average_stars ~ review_count + fans + average_useful +
-               elite + average_business_stars, data = data)
+               elite + average_business_review_count, data = data)
 check_normality(model1, bc_average_stars)
 ```
 
@@ -48,31 +49,33 @@ summary(powerTransform(cbind(data[, c(2, 7)])))
 ```
 
 ```{r}
-bc_average_business_stars <- data$average_business_stars ** 7/3
+# bc_average_business_review_count <- data$average_business_review_count ** 7/3
 bc_review_count <- data$review_count ** -1/3
 ```
 
 ```{r}
 model2 <- lm(average_stars ~ bc_review_count + fans + average_useful +
-               elite + bc_average_business_stars, data = data)
+               elite + average_business_review_count, data = data)
 check_normality(model2, data$average_stars)
 ```
 
 ```{r}
 model3 <- lm(bc_average_stars ~ bc_review_count + fans + average_useful +
-               elite + bc_average_business_stars, data = data)
+               elite + average_business_review_count, data = data)
 check_normality(model3, bc_average_stars)
 ```
 
 ```{r, fig.width=10, fig.height=10}
-par(mfrow = c(3, 3))
+par(mfrow = c(3, 4))
 plot(resid(model3) ~ fitted(model3), main = "All Transformed")
+plot(resid(model2) ~ fitted(model2), main = "Transformed X")
 plot(resid(model1) ~ fitted(model1), main = "Transformed Y")
 plot(resid(og_model) ~ fitted(og_model), main = "Untransformed")
 plot(resid(model3) ~ bc_review_count, main = "All Transformed")
+plot(resid(model2) ~ bc_average_stars, main = "Transformed X")
 plot(resid(model1) ~ data$review_count, main = "Transformed Y")
 plot(resid(og_model) ~ data$review_count, main = "Untransformed")
-plot(resid(model3) ~ bc_average_business_stars, main = "All Transformed")
-plot(resid(model1) ~ data$average_business_stars, main = "Transformed Y")
-plot(resid(og_model) ~ data$average_business_stars, main = "Untransformed")
+# plot(resid(model3) ~ bc_average_business_review_count, main = "All Transformed")
+# plot(resid(model1) ~ data$average_business_review_count, main = "Transformed Y")
+# plot(resid(og_model) ~ data$bc_average_business_review_count, main = "Untransformed")
 ```
