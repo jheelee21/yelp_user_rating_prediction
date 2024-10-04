@@ -37,7 +37,9 @@ new <- new_review %>%
   group_by(user_id) %>%
   summarise(
     average_useful = mean(useful),
-    extreme_ratings = sum(stars == 1) + sum(stars == 5)
+    total_useful = sum(useful),
+    extreme_ratings = sum(stars == 1) + sum(stars == 5),
+    average_word_count = mean(word_count)
   )
 
 data <- left_join(new, new_user, by = "user_id")
