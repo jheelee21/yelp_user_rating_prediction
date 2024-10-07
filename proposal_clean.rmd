@@ -1,0 +1,72 @@
+```{r}
+library(readr)
+library(tidyverse)
+library(dplyr)
+library(MASS)
+# install.packages("car")
+library(car)
+```
+
+```{r}
+data <- read.csv("yelp_data.csv")
+data <- data[complete.cases(data), ]
+```
+
+```{r}
+check_normality <- function(model, response) {
+  par(mfrow = c(1, 3))
+  # Residuals versus fitted values
+  plot(x = fitted(model), y = resid(model), main = "Residual vs Fitted",
+       xlab = "Fitted", ylab = "Residuals")
+
+  # Normal Quantile-Quantile (QQ) plot
+  qqnorm(resid(model))
+  qqline(resid(model))
+
+  # Histogram of response variable
+  hist(response, xlab = "Response", main = "Histogram of Response Variable")
+}
+```
+
+```{r, fig.width=15, fig.height=5}
+og_model <- lm(average_word_count ~ extreme_ratings + fans + total_useful +
+                 elite + compliments, data = data)
+
+check_normality(og_model, data$average_word_count)
+```
+
+```{r, fig.width=10, fig.height=5}
+# Histogram of predictors
+par(mfrow= c(2, 3))
+hist(data$average_word_count, xlab = "average_word_count")
+hist(data$total_useful, xlab = "total_useful")
+hist(data$extreme_ratings, xlab = "extreme_ratings")
+hist(data$fans, xlab = "fans")
+hist(data$compliments, xlab = "compliments")
+hist(data$compliments, xlab = "elite")
+```
+
+```{r}
+# Response versus fitted values
+plot(data$average_word_count ~ fitted(og_model))
+
+# Pairwise scatterplots
+df <- data[c(3, 4, 6, 8, 10)]
+pairs(df)
+```
+
+```{r, fig.width=20, fig.height=5}
+# Residuals versus each predictor 
+r <- resid(og_model)
+par(mfrow = c(2, 3))
+plot(x = data$extreme_ratings, y = r, main = "Residual vs extreme_ratings",
+       xlab = "review_count", ylab = "Residuals")
+plot(x = data$fans, y = r, main = "Residual vs fans",
+       xlab = "fans", ylab = "Residuals")
+plot(x = data$total_useful, y = r, main = "Residual vs total_useful",
+       xlab = "total_useful", ylab = "Residuals")
+boxplot(r ~ data$elite, main = "Residual vs elite",
+       xlab = "elite", ylab = "Residuals", names=c("never elite", "elite"))
+plot(x = data$compliments, y = r, main = "Residual vs compliments",
+       xlab = "compliments", ylab = "Residuals")
+```
