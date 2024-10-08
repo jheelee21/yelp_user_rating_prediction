@@ -21,9 +21,9 @@ business <- read_csv(business_file)
 # review2 <- read_csv(review_file2)
 # review <- rbind(review1, review2)
 
-View(user)
-View(business)
-View(review)
+# View(user)
+# View(business)
+# View(review)
 
 new_user <- subset(user, select = c(fans, average_stars, elite,
                                     review_count, user_id, compliments))
@@ -39,10 +39,11 @@ new <- new_review %>%
     average_useful = mean(useful),
     total_useful = sum(useful),
     extreme_ratings = sum(stars == 1) + sum(stars == 5),
+    extreme_ratings_ratio = mean(stars == 1 | stars == 5),
     average_word_count = mean(word_count)
   )
 
 data <- left_join(new, new_user, by = "user_id")
 View(head(data))
 
-write.csv(data, "yelp_data.csv", row.names = FALSE)
+write.csv(data, "yelp_data_new.csv", row.names = FALSE)
