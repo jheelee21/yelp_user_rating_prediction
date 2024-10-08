@@ -8,6 +8,7 @@ library(car)
 ```
 
 ```{r}
+# Data Loader
 data <- read.csv("yelp_data.csv")
 data <- data[complete.cases(data), ]
 ```
@@ -15,110 +16,73 @@ data <- data[complete.cases(data), ]
 ```{r}
 check_normality <- function(model, response) {
   par(mfrow = c(1, 3))
+  # Residuals versus fitted values
   plot(x = fitted(model), y = resid(model), main = "Residual vs Fitted",
        xlab = "Fitted", ylab = "Residuals")
 
+  # Normal Quantile-Quantile (QQ) plot
   qqnorm(resid(model))
   qqline(resid(model))
 
+  # Histogram of response variable
   hist(response, xlab = "Response", main = "Histogram of Response Variable")
 }
 ```
 
-```{r, fig.width=15, fig.height=5}
-og_model <- lm(average_word_count ~ extreme_ratings + fans + total_useful +
-                 elite + compliments, data = data)
+```{r}
+predictors = c("fans", "compliments", "total_useful", "extreme_ratings_ratio", "elite")
+```
+
+```{r, fig.width = 15, fig.height = 5}
+og_model <- lm(average_word_count ~ 
+                 fans +
+                 compliments + 
+                 total_useful + 
+                 extreme_ratings_ratio +
+                 elite, 
+               data = data)
 
 check_normality(og_model, data$average_word_count)
 ```
 
-```{r, fig.width=10, fig.height=5}
-# par(mfrow= c(2, 4))
-# hist(data$average_word_count, xlab = "average_word_count")
-# hist(data$average_useful, xlab = "average_useful", breaks=c(0,2,4,6,8,10,20,70))
-# hist(data$total_useful, xlab = "total_useful")
-# hist(data$extreme_ratings, xlab = "extreme_ratings")
-# hist(data$fans, xlab = "fans")
-# hist(data$review_count, xlab = "review_count")
-# hist(data$compliments, xlab = "compliments")
-```
-
-```{r, fig.width=20, fig.height=5}
-r <- resid(og_model)
-par(mfrow = c(1, 5))
-plot(x = data$extreme_ratings, y = r, main = "Residual vs extreme_ratings",
-       xlab = "review_count", ylab = "Residuals")
-plot(x = data$fans, y = r, main = "Residual vs fans",
-       xlab = "fans", ylab = "Residuals")
-plot(x = data$total_useful, y = r, main = "Residual vs total_useful",
-       xlab = "total_useful", ylab = "Residuals")
-boxplot(r ~ data$elite, main = "Residual vs elite",
-       xlab = "elite", ylab = "Residuals", names=c("never elite", "elite"))
-plot(x = data$compliments, y = r, main = "Residual vs compliments",
-       xlab = "compliments", ylab = "Residuals")
-```
-
-```{r}
-trans_word_count <- data$wordcount ^ (-1/2)
-model1 <- lm(trans_word_count ~ extreme_ratings + fans + total_useful +
-                 elite + compliments, data = data)
-```
-
-```{r, fig.width=5, fig.height=5}
-data$total_useful[data$total_useful == 0] = 0.000001
-data$extreme_ratings[data$extreme_ratings == 0] = 0.000001
-data$average_word_count[data$average_word_count == 0] = 0.000001
-data$fans[data$fans == 0] = 0.000001
-data$compliments[data$compliments == 0] = 0.000001
-
-summary(powerTransform(cbind(data[, c(3, 4, 5, 6, 10)])))
-```
-
-```{r}
-bc_extreme_ratings <- data$extreme_ratings ** 1/3
-bc_fans <- data$fans ** -1/3
-bc_compliments <- data$compliments ** -1.3
-```
-
-```{r, fig.width=15, fig.height=5}
-model1 <- lm(average_word_count ~ bc_extreme_ratings + fans + total_useful +
-                 elite + compliments, data = data)
-model2 <- lm(average_word_count ~ extreme_ratings + bc_fans + total_useful +
-                 elite + compliments, data = data)
-model3 <- lm(average_word_count ~ extreme_ratings + fans + total_useful +
-                 elite + bc_compliments, data = data)
-model4 <- lm(average_word_count ~ bc_extreme_ratings + bc_fans + total_useful +
-                 elite + bc_compliments, data = data)
-
-# not using these as they look the same
-# check_normality(model1, data$average_word_count)
-# check_normality(model2, data$average_word_count)
-# check_normality(model3, data$average_word_count)
-check_normality(model4, data$average_word_count)
-```
-
-```{r, fig.width=10, fig.length=10}
+```{r, fig.width = 8, fig.height = 6}
+# Histogram of predictors
 par(mfrow = c(2, 2))
-plot(resid(model4) ~ fitted(model4), main = "All Transformed")
-plot(resid(og_model) ~ fitted(og_model), main = "Untransformed")
-plot(resid(model4) ~ data$average_word_count, main = "All Transformed")
-plot(resid(og_model) ~ data$average_word_count, main = "Untransformed")
+hist(data$total_useful, xlab = "Total Number of Useful Votes ", xlim = c(0, 100), breaks = 500,
+     main = "Histogram of Total Number of Useful Votes")
+hist(data$extreme_ratings_ratio, xlab = "Extreme Ratings Ratio", breaks = 15,
+     main = "Histogram of Extreme Ratings Ratio")
+hist(data$fans, xlab = "Number of Fans", xlim = c(0, 100), breaks = 1000,
+     main = "Histogram of Number of Fans")
+hist(data$compliments, xlab = "Number of Compliments", xlim = c(0, 500), breaks = 1000,
+     main = "Histogram of Number of Compliments")
 ```
 
-```{r, fig.width=10, fig.height=10}
-par(mfrow = c(3, 4))
-plot(resid(model3) ~ fitted(model3), main = "All Transformed")
-plot(resid(model2) ~ fitted(model2), main = "Transformed X")
-plot(resid(model1) ~ fitted(model1), main = "Transformed Y")
-plot(resid(og_model) ~ fitted(og_model), main = "Untransformed")
-plot(resid(model3) ~ bc_review_count, main = "All Transformed")
-plot(resid(model2) ~ bc_average_stars, main = "Transformed X")
-plot(resid(model1) ~ data$review_count, main = "Transformed Y")
-plot(resid(og_model) ~ data$review_count, main = "Untransformed")
+
+```{r, fig.width = 8, fig.height = 8}
+# Response versus fitted values
+plot(data$average_word_count ~ fitted(og_model), ylab = "Average word count",
+     main = "Response versus Fitted Values")
 ```
 
-```{r}
-plot(data$average_word_count ~ fitted(model4))
-df <- data[c(3, 4, 6, 8, 10)]
-pairs(df)
+```{r, fig.width = 10, fig.height = 8}
+# Pair-wise scatter plots
+df <- data[predictors]
+pairs(df, main = "Pair-wise Scatter Plots for Predictors")
+```
+
+```{r, fig.width = 10, fig.height = 6}
+# Residuals versus each predictor 
+r <- resid(og_model)
+par(mfrow = c(2, 3))
+plot(x = data$extreme_ratings, y = r, main = "Residual versus Extreme Ratings Ratio",
+       xlab = "Extreme Ratings Ratio", ylab = "Residuals")
+plot(x = data$fans, y = r, main = "Residual versus Number of Fans",
+       xlab = "Number of Fans", ylab = "Residuals")
+plot(x = data$total_useful, y = r, main = "Residual versus Total Number of Useful Votes",
+       xlab = "Total Number of Useful Votes", ylab = "Residuals")
+boxplot(r ~ data$elite, main = "Residual versus Elite",
+       ylab = "Residuals", names=c("Never Been Elite", "Has been Elite"))
+plot(x = data$compliments, y = r, main = "Residual versus Number of Compliments",
+       xlab = "Number of Compliments", ylab = "Residuals")
 ```
