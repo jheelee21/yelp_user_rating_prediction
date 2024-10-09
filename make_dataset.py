@@ -36,8 +36,8 @@ def business(f):
     dst = "./data/reduced/yelp_academic_dataset_business_reduced.csv"
     
     df = df[["business_id", "stars", "review_count", "state"]]
-    df = df[df['state'].str.contains("AB")]
-    df = df.drop("state", axis=1)
+    # df = df[df['state'].str.contains("AB")]
+    # df = df.drop("state", axis=1)
 
     df.to_csv(dst, index=False)
 
